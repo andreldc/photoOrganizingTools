@@ -18,7 +18,10 @@ def normalize(vector, new_min=0, new_max=255):
 def convert_to_image(vector):
     return np.rint(normalize(vector, 0, 255)).astype("uint8")
 
-def resize_and_show(name, img, scale_percent, previewEvent=None, eventParams=None):
-    cv2.imshow(name, cv2.resize(img, (int(img.shape[1] * scale_percent / 100), int(img.shape[0] * scale_percent / 100))))
-    if previewEvent is not None:
-        cv2.setMouseCallback(name, previewEvent, param=eventParams)
+def resize_and_show(name, img, scale_percent, preview_event=None, event_params=None, show_condition=True):
+    if show_condition:
+        cv2.imshow(name, cv2.resize(img, (int(img.shape[1] * scale_percent / 100), int(img.shape[0] * scale_percent / 100))))
+        if preview_event is not None:
+            cv2.setMouseCallback(name, preview_event, param=event_params)
+
+       

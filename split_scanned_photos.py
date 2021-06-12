@@ -176,4 +176,9 @@ if __name__ == "__main__":
         for i in range(len(photos)):
             resize_and_show("{} (image {})".format(image, i), photos[i], PREVIEW_SCALE)
 
+            save_path = image.split("\\")[0] + "\\crop" + image.split(".")[-2] + "_" + str(i) + "." +  image.split(".")[-1]
+            
+            print(image, save_path)
+            cv2.imwrite(save_path, photos[i])
+
         cv2.waitKey(0)
