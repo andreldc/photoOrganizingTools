@@ -24,4 +24,20 @@ def resize_and_show(name, img, scale_percent, preview_event=None, event_params=N
         if preview_event is not None:
             cv2.setMouseCallback(name, preview_event, param=event_params)
 
+def stack_1_by_2(image_1, image_2, convert_image=False, orientation="Horizontal"):
+    """
+    Stacks 2 np.arrays vertically or horizontally
+    """
+    if convert_image:
+        image_1 = convert_to_image(image_1)
+        image_2 = convert_to_image(image_2)
+
+    if orientation == "Horizontal":
+        out = np.hstack((image_1, image_2))
+    elif orientation == "Vertical":
+        out = np.vstack((image_1, image_2))
+    else:
+        out = np.hstack((image_1, image_2))
+
+    return out
        
