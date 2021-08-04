@@ -19,82 +19,48 @@ def imread2(path, grayscale=False):
     return image
 
 
-def get_descriptor(full_path):
-    """Gets descriptor for a given image"""
-
-    image = imread2(full_path, True)
-    image_flip = cv.flip(image,0)
-
-    try:
-        sift = cv.SIFT_create(nfeatures=100)
-        _, descriptor = sift.detectAndCompute(image, None)
-        _, descriptor_flip = sift.detectAndCompute(image_flip, None)
-
-    except Exception as exception:
-        print("Error getting descriptor", exception)
-        return None, None
-
-    return descriptor, descriptor_flip
-
-
-def get_all_descriptors(paths):
+def compare_descriptors(paths):
     """Compares files to find duplicates"""
 
+    all_descriptors = {}
+
+    # Merges all descriptors into one dict
     for path in paths:
         for dir_path, subdirs, filenames in os.walk(path):
-
-            pickle_filename = os.path.join(dir_path, "descriptors.pkl")
-            try:
-                with open(pickle_filename, 'rb') as pickle_reader:
-                    descriptors = pickle.load(pickle_reader)
-            except Exception as exception:
-                descriptors = {}
-
-
             for filename in filenames:
                 full_path = os.path.join(dir_path, filename)
+
                 try:
                     full_path = os.path.realpath(full_path) # follows symlinks
 
-                    _, fmt = os.path.splitext(filename)
+                    if filename == "descriptors.pkl":
 
-                    if fmt.lower() in [".jpeg", ".jpg", ".jpe", ".bmp", ".jp2", ".png", ".pbm", ".pgm", ".ppm", ".sr", ".ras", ".tiff", ".tif"]:
+                        try:
+                            with open(full_path, 'rb') as pickle_reader:
+                                descriptors = pickle.load(pickle_reader)
+                        except Exception as exception:
+                            descriptors = {}         
 
-                        has_descriptor = full_path in descriptors
-                        if has_descriptor:
-                            is_modified = descriptors[full_path][2] != os.path.getmtime(full_path)
-                        else:
-                            is_modified = True
-
-                        if not has_descriptor or (has_descriptor and is_modified):
-                            descriptor, descriptor_flip = get_descriptor(full_path)
-
-                            if descriptor is not None:
-                                descriptors[full_path] = (descriptor, descriptor_flip, os.path.getmtime(full_path))
-                                print("OK    - " + filename)
-
-                        else:
-                            print("Skip  - " + filename)
-                    else:
-                        print("Ignoring Format " + fmt)
+                        # Updates file paths                        
+                        for descriptor_path in descriptors.keys():
+                            image_path = os.path.join(dir_path, descriptor_path)
+                            all_descriptors[image_path] = descriptors[descriptor_path]
 
                 except (OSError,):
                     continue
 
-            print(descriptors)
 
-            with open(pickle_filename, 'wb') as pickle_writer:
-                pickle.dump(descriptors, pickle_writer)
+    print(len(all_descriptors))
 
+    for i in range(len(all_descriptors)):
+        print(i)
 
-    for i in range(len(descriptors)):
-
-        path_a, desc_a  = descriptors.popitem()
+        path_a, desc_a  = all_descriptors.popitem()
         a1, a2, _ = desc_a
         print(a1.shape, a1.dtype)
-        for path_b in descriptors:
+        for path_b in all_descriptors:
 
-            b1, b2, _ = descriptors[path_b]
+            b1, b2, _ = all_descriptors[path_b]
             bfm = cv.BFMatcher(cv.NORM_L2)
             bfm2 = cv.BFMatcher(cv.NORM_L2)
 
@@ -149,7 +115,7 @@ if __name__ == "__main__":
         print(stylize("   " + arg, colored.bg("light_red")))
 
     # duplicate_set =
-    get_all_descriptors(PATHS)
+    compare_descriptors(PATHS)
 
     full_paths = list(map(lambda p: os.path.abspath(p), PATHS))
 
