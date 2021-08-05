@@ -18,12 +18,16 @@ def imread2(path, grayscale=False):
 
     return image
 
-
 def get_descriptor(full_path):
     """Gets descriptor for a given image"""
 
     image = imread2(full_path, True)
-    image_flip = cv.flip(image,0)
+    image = utils.limit_image_dimension(image, 500)
+    # print(image.shape)
+    # cv.imshow("test", image)
+    # cv.waitKey(1000)
+
+    image_flip = cv.flip(image, 0)
 
     try:
         sift = cv.SIFT_create(nfeatures=100)
@@ -41,7 +45,11 @@ def get_all_descriptors(paths):
     """Compares files to find duplicates"""
 
     for path in paths:
+
+        path = path.replace("\"", "")                     
+
         for dir_path, subdirs, filenames in os.walk(path):
+
 
             pickle_filename = os.path.join(dir_path, "descriptors.pkl")
             try:

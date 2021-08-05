@@ -1,4 +1,4 @@
-import cv2
+import cv2 as cv
 import numpy as np
 
 def change_range(vector, old_min, old_max, new_min, new_max):
@@ -20,9 +20,9 @@ def convert_to_image(vector):
 
 def resize_and_show(name, img, scale_percent, preview_event=None, event_params=None, show_condition=True):
     if show_condition:
-        cv2.imshow(name, cv2.resize(img, (int(img.shape[1] * scale_percent / 100), int(img.shape[0] * scale_percent / 100))))
+        cv.imshow(name, cv.resize(img, (int(img.shape[1] * scale_percent / 100), int(img.shape[0] * scale_percent / 100))))
         if preview_event is not None:
-            cv2.setMouseCallback(name, preview_event, param=event_params)
+            cv.setMouseCallback(name, preview_event, param=event_params)
 
 def stack_1_by_2(image_1, image_2, convert_image=False, orientation="Horizontal"):
     """
@@ -41,3 +41,28 @@ def stack_1_by_2(image_1, image_2, convert_image=False, orientation="Horizontal"
 
     return out
        
+
+def limit_image_dimension(image, max=1280):
+    """Limits image dimension to 1280x1280"""
+    
+    # 8K = 7680x4320
+    # 4K = 3840x2160
+    # FullHD = 1920x1080
+    # HD = 1280x720
+    # SD = 640x480
+    # 480p = 480x360
+    # 360p = 360x240
+    # 240p = 240x180
+    # 180p = 180x135
+    # 135p = 135x90
+    # 90p = 90x60
+    # 60p = 60x45
+
+    shape = image.shape
+    if shape[0] > max or shape[1] > max:
+        if shape[0] > shape[1]:
+            image = cv.resize(image, (max, int(shape[0] * max / shape[1])))
+        else:
+            image = cv.resize(image, (int(shape[1] * max / shape[0]), max))
+
+    return image
