@@ -1,6 +1,17 @@
 import cv2 as cv
 import numpy as np
 
+def imread2(path, grayscale=False):
+    stream = open(path, "rb")
+    bytes = bytearray(stream.read())
+    numpyarray = np.asarray(bytes, dtype=np.uint8)
+    image = cv.imdecode(numpyarray, cv.IMREAD_UNCHANGED)
+
+    if grayscale:
+        return cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+
+    return image
+
 def change_range(vector, old_min, old_max, new_min, new_max):
     if(vector.min() != vector.max() and old_max != old_min):
         new_vector = ((vector-old_min)/(old_max-old_min))*(new_max-new_min) + new_min

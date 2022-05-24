@@ -4,33 +4,21 @@ import cv2 as cv
 from colored import stylize
 import colored
 import pickle
-import enhanced_imshow
 import utils
 
-def imread2(path, grayscale=False):
-    stream = open(path, "rb")
-    bytes = bytearray(stream.read())
-    numpyarray = np.asarray(bytes, dtype=np.uint8)
-    image = cv.imdecode(numpyarray, cv.IMREAD_UNCHANGED)
-
-    if grayscale:
-        return cv.cvtColor(image, cv.COLOR_BGR2GRAY)
-
-    return image
+N_FEATURES = 100
+MAX_IMAGE_SIZE = 500
 
 def get_descriptor(full_path):
     """Gets descriptor for a given image"""
 
-    image = imread2(full_path, True)
-    image = utils.limit_image_dimension(image, 500)
-    # print(image.shape)
-    # cv.imshow("test", image)
-    # cv.waitKey(1000)
+    image = utils.imread2(full_path, True)
+    image = utils.limit_image_dimension(image, MAX_IMAGE_SIZE)
 
     image_flip = cv.flip(image, 0)
 
     try:
-        sift = cv.SIFT_create(nfeatures=100)
+        sift = cv.SIFT_create(nfeatures=N_FEATURES)
         _, descriptor = sift.detectAndCompute(image, None)
         _, descriptor_flip = sift.detectAndCompute(image_flip, None)
 
@@ -46,10 +34,9 @@ def get_all_descriptors(paths):
 
     for path in paths:
 
-        path = path.replace("\"", "")                     
+        path = path.replace("\"", "")
 
         for dir_path, subdirs, filenames in os.walk(path):
-
 
             pickle_filename = os.path.join(dir_path, "descriptors.pkl")
             try:
@@ -59,14 +46,16 @@ def get_all_descriptors(paths):
                 descriptors = {}
 
             for filename in filenames:
+
                 full_path = os.path.join(dir_path, filename)
+
                 try:
                     full_path = os.path.realpath(full_path) # follows symlinks
 
                     _, fmt = os.path.splitext(filename)
 
                     if fmt.lower() in [".jpeg", ".jpg", ".jpe", ".bmp", ".jp2", ".png", ".pbm", ".pgm", ".ppm", ".sr", ".ras", ".tiff", ".tif"]:
-                        
+
                         has_descriptor = filename in descriptors
 
                         # If file has descriptor, checks if it has been modified

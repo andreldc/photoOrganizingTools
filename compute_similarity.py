@@ -8,6 +8,8 @@ import enhanced_imshow
 import utils
 import json
 
+GOOD_RATIO = 0.75
+
 def compare_descriptors(paths):
     """Compares files to find duplicates"""
 
@@ -16,7 +18,7 @@ def compare_descriptors(paths):
     # Merges all descriptors into one dict
     for path in paths:
 
-        path = path.replace("\"", "")     
+        path = path.replace("\"", "")
 
         for dir_path, subdirs, filenames in os.walk(path):
             for filename in filenames:
@@ -41,89 +43,56 @@ def compare_descriptors(paths):
                 except (OSError,):
                     continue
 
-
-    print(len(all_descriptors))
-
-    duplicatesss = {}
+    similarities = {}
 
     for i in range(len(all_descriptors)):
 
         path_a, desc_a  = all_descriptors.popitem()
-
-        a1, a2, _ = desc_a
-        # print(len(a1), len(a2))
-
-        found = []
+        a1, _, _ = desc_a
 
         for path_b in all_descriptors:
-            
 
             b1, b2, _ = all_descriptors[path_b]
 
-            bfm = cv.BFMatcher(cv.NORM_L2)
-            bfm2 = cv.BFMatcher(cv.NORM_L2)
+            matches1 = cv.BFMatcher(cv.NORM_L2).knnMatch(a1, b1, k=2)
+            matches2 = cv.BFMatcher(cv.NORM_L2).knnMatch(a1, b2, k=2)
 
-            matches = bfm.knnMatch(a1, b1, k=2)
-            matches2 = bfm2.knnMatch(a1, b2, k=2)
+            matchesA = sorted(cv.BFMatcher(cv.NORM_L2, crossCheck=True).match(a1, b1), key = lambda x:x.distance)
+            matchesB = sorted(cv.BFMatcher(cv.NORM_L2, crossCheck=True).match(a1, b2), key = lambda x:x.distance)            
 
-            # print(path_b, len(a1), len(a2), len(b1), len(b2), len(matches), len(matches2))
-
-            good = []
-            if(len(b1)>1):
-                for m, n in matches:
-                    if m.distance < 0.25*n.distance:
-                        good.append([m])
-
+            good1 = []
             good2 = []
-            if(len(b2)>1):
+
+            if len(b1) > 1:
+                for m, n in matches1:
+                    if m.distance < GOOD_RATIO * n.distance:
+                        good1.append([m])
+
+            if len(b2) > 1:
                 for m, n in matches2:
-                    if m.distance < 0.25*n.distance:
+                    if m.distance < GOOD_RATIO * n.distance:
                         good2.append([m])
 
-            # print(path_a + "\n" + path_b + " " + str(len(matches)) +" "+ str(len(matches2)) +" "+ str(len(good))+ " "+str(len(good2)))
-            # if (len(good) + len(good2))/(len(matches)+len(matches2)) > .1:
-            if (len(good) / len(matches) > .1 or len(good2) / len(matches2) > .1):
-                print(path_a + "\n" + path_b + "\n", len(matches) , len(matches2), len(good), len(good2), len(good) / len(matches), len(good2) / len(matches2))
-                print("")
+       
 
-                img_props = {}
+            score =  len(good1) + len(good2) + abs(len(good1) - len(good2))
+            score2 =  len(matchesA) + len(matchesB) + abs(len(matchesA) - len(matchesB))
+            # if pct1 > 0.25 or pct2 > 0.25:
+            if score > 60 and score2 > 90: # VALORES BONS PARA 100 DESCRITORES
 
-                img_props["path"] = path_b
-
-                found.append(path_b)
-
+                print("{:2.0f} {:2.0f} {:2.0f} {:2.0f} | {:2.0f} {:2.0f} {:2.0f} {:2.0f}".format(len(good1), len(good2), abs(len(good1) - len(good2)), score, len(matchesA), len(matchesB), abs(len(good1) - len(good2)), score2))
+                # dict2 = {}
+                # dict2[path_b] = pct
+                # similarities[path_a] = dict2
+                # print(" Confirmation: {:10.0f} {:10.0f}".format(len(matchesA), len(matchesB)))
+                
                 img1 = utils.imread2(path_a)
                 img2 = utils.imread2(path_b)
 
-                # shape1 = img1.shape
-                # shape2 = img2.shape
-                # shape = (img2.shape[1], img2.shape[0])
-
-                # im2_rsz = cv.resize(img2, (shape))
-
-                # if shape1[0]/shape1[1] >=1 and shape2[0]/shape2[1] <=1:
-                #     im2_rsz = cv.rotate(im2_rsz, cv.ROTATE_90_CLOCKWISE)
-
-                # cv.imshow("A", utils.limit_image_dimension(img1, 500))
-                # cv.imshow("B", utils.limit_image_dimension(img2, 500))
-                # cv.waitKey(2000)
-                # cv.destroyAllWindows()
-
-                # enhanced_imshow.enhanced_imshow("Duplicate!", utils.stack_1_by_2(img1, im2_rsz))
-
-                # cv.waitKey(0)
-
-            # except Exception as exception:
-            #     print("Erro", path_a, path_b)
-            #     print("Erro", exception)
-            
-            if(len(found)>0):
-                duplicatesss[path_a] = found
-
-    # saves duplicatesss to json file
-    with open("./duplicates.json", "w", encoding='utf8') as json_file:
-        json.dump(duplicatesss, json_file, ensure_ascii=False)
-
+                cv.imshow("A", utils.limit_image_dimension(img1, 500))
+                cv.imshow("B", utils.limit_image_dimension(img2, 500))
+                cv.waitKey(1000)
+    #             # cv.destroyAllWindows()
 
 
 
