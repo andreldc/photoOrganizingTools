@@ -1,6 +1,7 @@
 import cv2 as cv
 import numpy as np
 
+
 def imread2(path, grayscale=False):
     stream = open(path, "rb")
     bytes = bytearray(stream.read())
@@ -12,13 +13,17 @@ def imread2(path, grayscale=False):
 
     return image
 
+
 def change_range(vector, old_min, old_max, new_min, new_max):
-    if(vector.min() != vector.max() and old_max != old_min):
-        new_vector = ((vector-old_min)/(old_max-old_min))*(new_max-new_min) + new_min
+    if vector.min() != vector.max() and old_max != old_min:
+        new_vector = ((vector - old_min) / (old_max - old_min)) * (
+            new_max - new_min
+        ) + new_min
     else:
         new_vector = vector
 
     return new_vector
+
 
 def normalize(vector, new_min=0, new_max=255):
     old_min = vector.min()
@@ -26,14 +31,28 @@ def normalize(vector, new_min=0, new_max=255):
 
     return change_range(vector, old_min, old_max, new_min, new_max)
 
+
 def convert_to_image(vector):
     return np.rint(normalize(vector, 0, 255)).astype("uint8")
 
-def resize_and_show(name, img, scale_percent, preview_event=None, event_params=None, show_condition=True):
+
+def resize_and_show(
+    name, img, scale_percent, preview_event=None, event_params=None, show_condition=True
+):
     if show_condition:
-        cv.imshow(name, cv.resize(img, (int(img.shape[1] * scale_percent / 100), int(img.shape[0] * scale_percent / 100))))
+        cv.imshow(
+            name,
+            cv.resize(
+                img,
+                (
+                    int(img.shape[1] * scale_percent / 100),
+                    int(img.shape[0] * scale_percent / 100),
+                ),
+            ),
+        )
         if preview_event is not None:
             cv.setMouseCallback(name, preview_event, param=event_params)
+
 
 def stack_1_by_2(image_1, image_2, convert_image=False, orientation="Horizontal"):
     """
@@ -51,11 +70,11 @@ def stack_1_by_2(image_1, image_2, convert_image=False, orientation="Horizontal"
         out = np.hstack((image_1, image_2))
 
     return out
-       
+
 
 def limit_image_dimension(image, max=1280):
     """Limits image dimension to 1280x1280"""
-    
+
     # 8K = 7680x4320
     # 4K = 3840x2160
     # FullHD = 1920x1080

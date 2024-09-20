@@ -7,6 +7,7 @@ import shutil
 from colored import stylize
 import colored
 
+
 def chunk_reader(fobj, chunk_size=1024):
     """Generator that reads a file in chunks of bytes"""
     while True:
@@ -15,10 +16,11 @@ def chunk_reader(fobj, chunk_size=1024):
             return
         yield chunk
 
+
 def get_hash(filename, first_chunk_only=False, hash=hashlib.sha1):
     """Gets hash for a given file"""
     hashobj = hash()
-    file_object = open(filename, 'rb')
+    file_object = open(filename, "rb")
 
     if first_chunk_only:
         hashobj.update(file_object.read(1024))
@@ -29,6 +31,7 @@ def get_hash(filename, first_chunk_only=False, hash=hashlib.sha1):
 
     file_object.close()
     return hashed
+
 
 def check_for_duplicates(paths):
     """Compares files to find duplicates"""
@@ -87,6 +90,7 @@ def check_for_duplicates(paths):
     # Returns only duplicates list, discarding hashes
     return [duplicate for (_, duplicate) in duplicates.items()]
 
+
 def sort_by_paths(duplicates, paths):
     """Sorts a given list of duplicates by path, defining wich file will be kept"""
     sorted_files = []
@@ -98,22 +102,29 @@ def sort_by_paths(duplicates, paths):
         files_in_path = [file for file in duplicates if file.find(full_path) != -1]
 
         # Sort them by path specificity
-        files_in_path = sorted(files_in_path, key=lambda t: t.count('\\'), reverse=True)
+        files_in_path = sorted(files_in_path, key=lambda t: t.count("\\"), reverse=True)
         sorted_files.append(files_in_path)
 
     # Joins all paths sublists and returns
     return [item for sublist in sorted_files for item in sublist]
 
+
 def manual_confirm(file):
     """Confirms file deletion and removes input message"""
-    result = input("Confirm deletion of " + file + "? (y/n): ") == 'y'
-    sys.stdout.write("\033[F") #back to previous line
-    sys.stdout.write("\033[K") #clear line
+    result = input("Confirm deletion of " + file + "? (y/n): ") == "y"
+    sys.stdout.write("\033[F")  # back to previous line
+    sys.stdout.write("\033[K")  # clear line
     return result
 
-def solve_duplicates(duplicates, move_path=None, copy_path=None, delete_duplicates=False,
-                     auto_confirm=False):
-    """ Allows removing, copying and moving duplicated files, always keeping the first file
+
+def solve_duplicates(
+    duplicates,
+    move_path=None,
+    copy_path=None,
+    delete_duplicates=False,
+    auto_confirm=False,
+):
+    """Allows removing, copying and moving duplicated files, always keeping the first file
     on ghe list"""
 
     count = 1
@@ -122,9 +133,8 @@ def solve_duplicates(duplicates, move_path=None, copy_path=None, delete_duplicat
         if count == 1:
             # Always keep first file
             print(
-                stylize(count, colored.fg("white")),
-                stylize(file, colored.fg("green"))
-                )
+                stylize(count, colored.fg("white")), stylize(file, colored.fg("green"))
+            )
 
         else:
             # If the user wants to delete duplicates
@@ -139,10 +149,10 @@ def solve_duplicates(duplicates, move_path=None, copy_path=None, delete_duplicat
                         continue
 
                 print(
-                        stylize(count, colored.fg("white")),
-                        stylize(file, colored.fg("red" if delete_success else "blue")),
-                        "has been deleted!" if delete_success else "kept!"
-                        )
+                    stylize(count, colored.fg("white")),
+                    stylize(file, colored.fg("red" if delete_success else "blue")),
+                    "has been deleted!" if delete_success else "kept!",
+                )
 
             # If the user wants to move duplicates
             elif move_path is not None:
@@ -152,17 +162,19 @@ def solve_duplicates(duplicates, move_path=None, copy_path=None, delete_duplicat
                 # Gets target path
                 for full_path in full_paths:
                     if file.find(full_path) != -1:
-                        target_path = file.replace("\\".join(full_path.split("\\")[:-1]), move_path)
+                        target_path = file.replace(
+                            "\\".join(full_path.split("\\")[:-1]), move_path
+                        )
 
                 os.makedirs(os.path.dirname(target_path), exist_ok=True)
                 shutil.move(file, target_path)
 
                 print(
-                        stylize(count, colored.fg("white")),
-                        stylize(file, colored.fg("red")),
-                        "moved to",
-                        stylize(target_path, colored.fg("blue")),
-                        )
+                    stylize(count, colored.fg("white")),
+                    stylize(file, colored.fg("red")),
+                    "moved to",
+                    stylize(target_path, colored.fg("blue")),
+                )
             # If the user wants to copy duplicates
             elif copy_path is not None:
 
@@ -171,24 +183,26 @@ def solve_duplicates(duplicates, move_path=None, copy_path=None, delete_duplicat
                 # Gets target path
                 for full_path in full_paths:
                     if file.find(full_path) != -1:
-                        target_path = file.replace("\\".join(full_path.split("\\")[:-1]), copy_path)
+                        target_path = file.replace(
+                            "\\".join(full_path.split("\\")[:-1]), copy_path
+                        )
 
                 os.makedirs(os.path.dirname(target_path), exist_ok=True)
                 shutil.copy(file, target_path)
 
                 print(
-                        stylize(count, colored.fg("white")),
-                        stylize(file, colored.fg("red")),
-                        "copied to",
-                        stylize(target_path, colored.fg("blue")),
-                        )
+                    stylize(count, colored.fg("white")),
+                    stylize(file, colored.fg("red")),
+                    "copied to",
+                    stylize(target_path, colored.fg("blue")),
+                )
             # Otherwise, just print duplicates names
             else:
                 print(
-                        stylize(count, colored.fg("white")),
-                        stylize(file, colored.fg("blue")),
-                        "is duplicate"
-                        )
+                    stylize(count, colored.fg("white")),
+                    stylize(file, colored.fg("blue")),
+                    "is duplicate",
+                )
 
         count += 1
 
@@ -197,18 +211,36 @@ if __name__ == "__main__":
 
     import argparse
 
-    parser = argparse.ArgumentParser(description="Finds duplicate files and moves/deletes then if \
-                                     needed")
-    parser.add_argument("paths", help="Sequence of paths to search for duplicate files", type=str,
-                        nargs='+')
-    parser.add_argument("-m", "--move", help="Define path to move files", type=str,
-                        default=None)
-    parser.add_argument("-c", "--copy", help="Define path to copy files", type=str,
-                        default=None)
-    parser.add_argument("-d", "--delete", help="Delete duplicate files", action='store_const',
-                        const=True)
-    parser.add_argument("-y", "--yestoall", help="Automatically confirms file move/deletion",
-                        action='store_const', const=True)
+    parser = argparse.ArgumentParser(
+        description="Finds duplicate files and moves/deletes then if \
+                                     needed"
+    )
+    parser.add_argument(
+        "paths",
+        help="Sequence of paths to search for duplicate files",
+        type=str,
+        nargs="+",
+    )
+    parser.add_argument(
+        "-m", "--move", help="Define path to move files", type=str, default=None
+    )
+    parser.add_argument(
+        "-c", "--copy", help="Define path to copy files", type=str, default=None
+    )
+    parser.add_argument(
+        "-d",
+        "--delete",
+        help="Delete duplicate files",
+        action="store_const",
+        const=True,
+    )
+    parser.add_argument(
+        "-y",
+        "--yestoall",
+        help="Automatically confirms file move/deletion",
+        action="store_const",
+        const=True,
+    )
 
     args = parser.parse_args()
     PATHS = args.paths
@@ -230,8 +262,14 @@ if __name__ == "__main__":
 
         sorted_list = sort_by_paths(duplicate_list, PATHS)
 
-        solve_duplicates(sorted_list, MOVE_PATH, COPY_PATH, DELETE_DUPLICATES, AUTO_CONFIRM)
+        solve_duplicates(
+            sorted_list, MOVE_PATH, COPY_PATH, DELETE_DUPLICATES, AUTO_CONFIRM
+        )
         print("")
 
-    print(stylize("     " + str(len(duplicate_set)) + " duplicates found!     ", 
-          colored.bg("green")))
+    print(
+        stylize(
+            "     " + str(len(duplicate_set)) + " duplicates found!     ",
+            colored.bg("green"),
+        )
+    )
