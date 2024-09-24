@@ -43,7 +43,6 @@
                 "sha256:fb6e2c0b86bbd43dee042e48059c9ad7830abd5c94b0bc518c0eeec57c3eddc1"
             ],
             "index": "pypi",
-            "markers": "python_version >= '3.8'",
             "version": "==24.8.0"
         },
         "click": {
@@ -116,7 +115,6 @@
                 "sha256:f3a86ed21e4f87050382c7bc96571755193c4c1392490744ac73d660e8f564a9"
             ],
             "index": "pypi",
-            "markers": "python_version >= '3.8'",
             "version": "==1.24.4"
         },
         "opencv-contrib-python": {
@@ -130,7 +128,6 @@
                 "sha256:ee4b0919026d8c533aeb69b16c6ec4a891a2f6844efaa14121bf68838753209c"
             ],
             "index": "pypi",
-            "markers": "python_version >= '3.6'",
             "version": "==4.10.0.84"
         },
         "packaging": {
