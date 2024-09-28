@@ -5,7 +5,7 @@ import colored
 import pickle
 import utils
 
-N_FEATURES = 100
+N_FEATURES = 50
 MAX_IMAGE_SIZE = 500
 IMG_EXTENSION = [
     ".jpeg",
@@ -44,60 +44,79 @@ def get_descriptor(full_path):
     return descriptor, descriptor_flip
 
 
-def get_all_descriptors(paths):
-    """Compares files to find duplicates"""
-
+def get_all_files(paths):
+    """Gets all files in a given path"""
+    all_files = []
     for path in paths:
         for dir_path, _, filenames in os.walk(path):
-
-            print(f"Processing {dir_path}")
-
-            pickle_filename = os.path.join(dir_path, "descriptors.pkl")
-            try:
-                with open(pickle_filename, "rb") as pickle_reader:
-                    descriptors = pickle.load(pickle_reader)
-            except Exception as exception:
-                descriptors = {}
-
             for filename in filenames:
                 full_path = os.path.join(dir_path, filename)
+                full_path = os.path.realpath(full_path)  # follows symlinks
+                all_files.append(full_path)
+    return all_files
 
-                try:
-                    full_path = os.path.realpath(full_path)  # follows symlinks
-                    _, extension = os.path.splitext(filename)
 
-                    print("Processing " + filename)
+class DescriptorStorage:
+    pickle_filename = os.path.join("d:\\descriptors.pkl")
 
-                    if extension.lower() in IMG_EXTENSION:
+    @staticmethod
+    def get_storage():
+        """Gets descriptor storage"""
+        try:
+            with open(DescriptorStorage.pickle_filename, "rb") as pickle_reader:
+                descriptors = pickle.load(pickle_reader)
+        except Exception as exception:
+            descriptors = {}
 
-                        has_descriptor = filename in descriptors
+        return descriptors
 
-                        # If file has descriptor, checks if it has been modified
-                        is_modified = has_descriptor and descriptors[filename][2] != os.path.getmtime(
-                            full_path
+    @staticmethod
+    def save_storage(descriptors):
+        """Saves descriptor storage"""
+        with open(DescriptorStorage.pickle_filename, "wb") as pickle_writer:
+            pickle.dump(descriptors, pickle_writer)
+
+
+def get_all_descriptors(paths):
+    """Gets descriptors for all images in a given path"""
+
+    descriptors = DescriptorStorage.get_storage()
+
+    for file_path in get_all_files(paths):
+        try:
+            _, extension = os.path.splitext(file_path)
+
+            print("Processing " + file_path)
+
+            if extension.lower() in IMG_EXTENSION:
+
+                has_descriptor = file_path in descriptors
+
+                # If file has descriptor, checks if it has been modified
+                is_modified = has_descriptor and descriptors[file_path][
+                    2
+                ] != os.path.getmtime(file_path)
+
+                # If file does not have descriptor, or if it has been modified, gets descriptor
+                if not has_descriptor or (has_descriptor and is_modified):
+                    descriptor, descriptor_flip = get_descriptor(file_path)
+
+                    if descriptor is not None:
+                        descriptors[file_path] = (
+                            descriptor,
+                            descriptor_flip,
+                            os.path.getmtime(file_path),
                         )
+                        print("OK    - " + file_path)
+                else:
+                    print("Skip  - " + file_path)
+            else:
+                print("Ignoring Format " + extension)
 
-                        # If file does not have descriptor, or if it has been modified, gets descriptor
-                        if not has_descriptor or (has_descriptor and is_modified):
-                            descriptor, descriptor_flip = get_descriptor(full_path)
+        except (OSError,):
+            continue
 
-                            if descriptor is not None:
-                                descriptors[filename] = (
-                                    descriptor,
-                                    descriptor_flip,
-                                    os.path.getmtime(full_path),
-                                )
-                                print("OK    - " + filename)
-                        else:
-                            print("Skip  - " + filename)
-                    else:
-                        print("Ignoring Format " + extension)
-
-                except (OSError,):
-                    continue
-
-            with open(pickle_filename, "wb") as pickle_writer:
-                pickle.dump(descriptors, pickle_writer)
+    DescriptorStorage.save_storage(descriptors)
 
 
 if __name__ == "__main__":
@@ -107,7 +126,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Computes image descriptors")
     parser.add_argument(
         "paths",
-        help="Sequence of paths to search for duplicate files",
+        help="Sequence of paths to compute descriptors",
         type=str,
         nargs="+",
     )
@@ -115,7 +134,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     PATHS = args.paths
 
-    print(stylize(" Searching duplicate files in:", colored.bg("red")))
+    print(stylize("Searching duplicate files in:", colored.bg("red")))
     for arg in PATHS:
         print(stylize("   " + arg, colored.bg("light_red")))
 
