@@ -1,6 +1,23 @@
 import cv2 as cv
 import numpy as np
 
+IMG_EXTENSIONS = [
+    ".jpeg",
+    ".jpg",
+    ".jpe",
+    ".bmp",
+    ".jp2",
+    ".png",
+    ".pbm",
+    ".pgm",
+    ".ppm",
+    ".sr",
+    ".ras",
+    ".tiff",
+    ".tif",
+]
+VIDEO_EXTENSIONS = [".avi", ".mp4", ".mov", ".mkv", ".flv", ".wmv", ".webm"]
+
 
 def imread2(path, grayscale=False):
     stream = open(path, "rb")
