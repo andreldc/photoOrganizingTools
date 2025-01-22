@@ -9,6 +9,9 @@ imutils = "*"
 black = "*"
 opencv-contrib-python = "*"
 numpy = "*"
+matplotlib = "*"
+pillow-heif = "*"
+pytest = "*"
 
 [dev-packages]
 
