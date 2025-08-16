@@ -1,5 +1,5 @@
 __pycache__
-.vscode
 sandbox
 results
 sample_images
+.pytest_cache
