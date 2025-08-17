@@ -1,6 +1,8 @@
-import unittest
 import os
+import unittest
+
 from storage.descriptor_storage import DescriptorStorage
+
 
 class TestDescriptorStorage(unittest.TestCase):
 
@@ -21,6 +23,7 @@ class TestDescriptorStorage(unittest.TestCase):
     def test_get_storage_empty(self):
         loaded_descriptors = DescriptorStorage.get_storage()
         self.assertEqual(loaded_descriptors, {})
+
 
 if __name__ == "__main__":
     unittest.main()
