@@ -77,10 +77,10 @@ def check_for_duplicates(paths):
                 duplicate = hashes_full.get(full_hash)
                 if duplicate:
 
-                    if not filename in duplicates[full_hash]:
+                    if filename not in duplicates[full_hash]:
                         duplicates[full_hash].append(filename)
 
-                    if not duplicate in duplicates[full_hash]:
+                    if duplicate not in duplicates[full_hash]:
                         duplicates[full_hash].append(duplicate)
                 else:
                     hashes_full[full_hash] = filename

@@ -99,7 +99,8 @@ def get_all_descriptors(paths: list[str]) -> None:
         print("    OK ", len(descriptor))
 
         processed_count += 1
-        if processed_count % 10 == 0:
+        if processed_count % 20 == 0:
+            print("    Saving intermediate results...")
             DescriptorStorage.save_storage(descriptors)
 
     DescriptorStorage.save_storage(descriptors)
